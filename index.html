@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="game-board">
+    <div data-row="0" data-col="0"></div>
+    <div data-row="0" data-col="1"></div>
+    <div data-row="0" data-col="2"></div>
+    <div data-row="1" data-col="0"></div>
+    <div data-row="1" data-col="1"></div>
+    <div data-row="1" data-col="2"></div>
+    <div data-row="2" data-col="0"></div>
+    <div data-row="2" data-col="1"></div>
+    <div data-row="2" data-col="2"></div>
+  </div>
+  <div class="game-interface">
+    <p class="game-messages">CLICK THE 'NEW GAME' BUTTON BELOW TO BEGIN</p>
+    <button class="new-game">New game</button>
+    <button class="reset-scores">Reset scores</button>
+    <p id="player1-name">Player 1</p>
+    <p class="player-score">
+      Games won: <span id="player1-score">0</span>
+    </p>
+    <p id="player2-name">Player 2</p>
+    <p class="player-score">
+      Games won: <span id="player2-score">0</span>
+    </p>
+  </div>
+</body>
+</html>
