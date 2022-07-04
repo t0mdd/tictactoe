@@ -1,10 +1,14 @@
-const gameBoard = (()=>{
+const gameBoard = (() => {
   let board = [];
   const init = 
-    () => board = [[null,null,null],[null,null,null],[null,null,null]];
+    () => {
+      board = [[null,null,null],[null,null,null],[null,null,null]];
+      for (let square of squares) 
+        square.textContent = '';
+    }
   const addSymbol = (symbol,row,column) => {
-    if (board[row,column] === null) return false;
-    board[row,column] = symbol;
+    if (board[row][column] !== null) return false;
+    board[row][column] = symbol;
     return true;
   }
   const winner = () => {
@@ -34,6 +38,7 @@ const gameBoard = (()=>{
     return true;
   }
   return {
+    init,
     addSymbol,
     winner,
     draw
@@ -41,47 +46,116 @@ const gameBoard = (()=>{
 })();
 
 const Player = (playerName,symbol) => {
-  let wins = 0;
-  const makeMove = (row,column) => gameBoard.addSymbol(symbol,row,column);
-  const getWins = () => wins;
+  let score = 0;
+  const makeMove = (row,column) => {
+    return gameBoard.addSymbol(symbol,row,column);
+  }
+  const getScore = () => score;
   const getName = () => playerName;
   const getSymbol = () => symbol;
-  const resetWins = () => wins = 0;
-  return {makeMove,getWins,getName,resetWins};
+  const resetScore = () => score = 0;
+  const incrementScore = () => score++;
+  return {makeMove,getScore,getName,getSymbol,resetScore,incrementScore};
 }
 
-const game = (()=>{
-  let gamePlaying = false;
+const gameState = (() => {
+  let gameInAction = false;
   let currentPlayer;
   let player1, player2;
-  const setPlayers = () => {
+  
+  const getCurrentPlayer = () => currentPlayer;
+
+  const setupMatch = () => {
     let name1 = prompt("Enter the first player's name (Your symbol is O): ");
     let name2 = prompt("Enter the second player's name (Your symbol is X): ");
     player1 = Player(name1,'O');
     player2 = Player(name2,'X');
-  }
-  const newRound = () => {
-    player1.resetWins();
-    player2.resetWins();
+    display.player1Name.textContent = name1;
+    display.player2Name.textContent = name2;
+    display.player1Score.textContent = display.player2Score.textContent = 0;
     newGame();
   }
-  const newGame = () => {
-    gameBoard.init();
-    currentPlayer = player1;
+
+  const resetScores = () => {
+    if (player1 === undefined || player2 === undefined) return;
+    player1.resetScore();
+    player2.resetScore();
+    display.player1Score.textContent = display.player2Score.textContent = 0;
   }
-  const progress = (squareClicked) => {
-    let moveSuccessful = gameBoard.addSymbol(currentPlayer.getSymbol(),
-      squareClicked.row,squareClicked.col);
 
-    if (!moveSuccessful) display.showError('Invalid move');
-    display.addSymbol(currentPlayer.getSymbol(),
-      squareClicked.row,squareClicked.col);
+  const newGame = () => {
+    if (player1 === undefined || player2 === undefined) {
+      display.message.textContent = 
+        "You need to click 'Setup Match' before playing";
+      return;
+    }
+    gameBoard.init();
+    gameInAction = true;
+    currentPlayer = player1;
+    display.message.textContent = `${player1.getName()}'s turn`;
+  }
 
-    if (gameBoard.winner()) 
-      display.showResult(`${currentPlayer.getName()} wins!`);
-    else if (gameBoard.draw())
-      display.showResult("It's a draw. Everyone LOSES");
-    else
+  const progress = () => {
+    if (gameBoard.winner()) {
+      gameInAction = false;
+      display.message.textContent = `${currentPlayer.getName()} wins!`;
+      currentPlayer.incrementScore();
+      let newScore = currentPlayer.getScore();
+      if (currentPlayer === player1) 
+        display.player1Score.textContent = newScore;
+      else
+        display.player2Score.textContent = newScore;
+    }
+    else if (gameBoard.draw()) {
+      gameInAction = false;
+      display.message.textContent = "It's a draw. Everyone LOSES";
+    }
+    else {
       currentPlayer = (currentPlayer === player1) ? player2 : player1;
+      display.message.textContent = `${currentPlayer.getName()}'s turn`;
+    }
+  }
+
+  const gameIsInAction = () => gameInAction;
+
+  return {
+    gameIsInAction,
+    setupMatch,
+    getCurrentPlayer,
+    progress,
+    resetScores,
+    newGame
   }
 })();
+
+const display = {
+  message: document.querySelector('.game-messages'),
+  player1Name: document.querySelector('#player1-name'),
+  player1Score: document.querySelector('#player1-score'),
+  player2Name: document.querySelector('#player2-name'),
+  player2Score: document.querySelector('#player2-score')
+};
+
+const squares = document.querySelectorAll('.game-board div');
+
+document.querySelector('.setup-match').addEventListener('click',
+  () => gameState.setupMatch());
+document.querySelector('.new-game').addEventListener('click',
+  () => gameState.newGame());
+document.querySelector('.reset-scores').addEventListener('click',
+  () => gameState.resetScores());
+
+
+for (let square of squares) {
+  let row = +square.dataset['row'];
+  let col = +square.dataset['col'];
+  square.addEventListener('click', () => {
+    if (!gameState.gameIsInAction()) return;
+    let currentPlayer = gameState.getCurrentPlayer();
+    let currentSymbol = currentPlayer.getSymbol();
+    if (currentPlayer.makeMove(row, col)){
+      square.textContent = currentSymbol;
+      gameState.progress();
+    }
+  });
+}
